@@ -3,26 +3,100 @@ import os
 
 import aws_cdk as cdk
 
-from cdk_lab_eice.cdk_lab_eice_stack import CdkLabEiceStack
-
+from aws_cdk import (
+    Stack,
+    aws_ec2 as ec2,
+    custom_resources as cr,
+    aws_iam as iam,
+    CfnOutput,
+)
+from constructs import Construct
 
 app = cdk.App()
-CdkLabEiceStack(app, "CdkLabEiceStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+class EICEStack(Stack):
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
+        subnet_configuration = ec2.SubnetConfiguration(
+            name="protected",
+            subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
+            cidr_mask=24,
+        )
 
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
+        vpc = ec2.Vpc(
+            self, "EICEVPC",
+            max_azs=2, 
+            subnet_configuration=[subnet_configuration],
+        )
 
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
+        sg_eice = ec2.SecurityGroup(
+            self, "EICESecurityGroup",
+            vpc=vpc,
+            allow_all_outbound=False,
+        )
+
+        sg_ec2 = ec2.SecurityGroup(
+            self, "EC2SecurityGroup",
+            vpc=vpc,
+        )
+
+        sg_eice.add_egress_rule(
+            peer=sg_ec2,
+            connection=ec2.Port.tcp(22),
+        )
+        
+        sg_ec2.add_ingress_rule(
+            peer=sg_eice,
+            connection=ec2.Port.tcp(22),
+        )
+
+        bastion = ec2.Instance(
+            self, "EICEBastion",
+            vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,),
+            instance_type=ec2.InstanceType("t3.micro"),
+            machine_image=ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.X86_64),
+            security_group=sg_ec2,
+        )
+        
+        eice = cr.AwsCustomResource(
+            self, "EC2InstanceConnectionEndpoint",
+            install_latest_aws_sdk=True,
+            on_update=cr.AwsSdkCall(  # Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createInstanceConnectEndpoint-property
+                service="EC2",
+                action="createInstanceConnectEndpoint",
+                parameters={  # [TODO] Dump to JSON format?
+                    "DryRun": False,
+                    "SubnetId": vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED).subnet_ids[0],
+                    "SecurityGroupIds": [sg_eice.security_group_id],
+                    "PreserveClientIp": True,
+                },
+                physical_resource_id=cr.PhysicalResourceId.from_response("InstanceConnectEndpoint.InstanceConnectEndpointId")
+            ),
+            on_delete=cr.AwsSdkCall(  # Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteInstanceConnectEndpoint-property
+                service="EC2",
+                action="deleteInstanceConnectEndpoint",
+                parameters={  # [TODO] Dump to JSON format?
+                    "DryRun": False,
+                    "InstanceConnectEndpointId": cr.PhysicalResourceIdReference(),
+                }
+            ),
+            policy=cr.AwsCustomResourcePolicy.from_statements(statements=[
+                    iam.PolicyStatement(
+                        actions=[
+                            "ec2:CreateInstanceConnectEndpoint",
+                            "ec2:CreateNetworkInterface",
+                            "ec2:CreateTags",
+                            "ec2:DeleteInstanceConnectEndpoint",
+                        ],
+                        resources=["*"],
+                    ),  
+                ],
+            )
+        )
+
+eice_stack = EICEStack(app, "EICEStack")
 
 app.synth()
