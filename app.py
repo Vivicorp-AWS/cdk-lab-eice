@@ -19,16 +19,16 @@ class EICEStack(Stack):
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        subnet_configuration = ec2.SubnetConfiguration(
-            name="protected",
-            subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
-            cidr_mask=24,
-        )
-
         vpc = ec2.Vpc(
             self, "EICEVPC",
             max_azs=2, 
-            subnet_configuration=[subnet_configuration],
+            subnet_configuration=[
+                ec2.SubnetConfiguration(
+                    name="protected",
+                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
+                    cidr_mask=24,
+                ),
+            ],
         )
 
         sg_eice = ec2.SecurityGroup(
