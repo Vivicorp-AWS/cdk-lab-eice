@@ -14,6 +14,7 @@ from constructs import Construct
 
 app = cdk.App()
 
+# Ref: https://dev.classmethod.jp/articles/create-ec2-instance-connect-endpoint-using-cdk-custom-resource/
 class EICEStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
