@@ -5,9 +5,13 @@ __pycache__
 .venv
 *.egg-info
 
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Visual Studio Code Settings
+.vscode/settings.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
