@@ -72,7 +72,9 @@ class EICEStack(Stack):
         eice = cr.AwsCustomResource(
             self, "EC2InstanceConnectionEndpoint",
             install_latest_aws_sdk=True,
-            on_update=cr.AwsSdkCall(  # Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createInstanceConnectEndpoint-property
+            # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateInstanceConnectEndpoint.html
+            # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createInstanceConnectEndpoint-property
+            on_update=cr.AwsSdkCall(
                 service="EC2",
                 action="createInstanceConnectEndpoint",
                 parameters={
@@ -83,7 +85,9 @@ class EICEStack(Stack):
                 },
                 physical_resource_id=cr.PhysicalResourceId.from_response("InstanceConnectEndpoint.InstanceConnectEndpointId")
             ),
-            on_delete=cr.AwsSdkCall(  # Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteInstanceConnectEndpoint-property
+            # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteInstanceConnectEndpoint.html
+            # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteInstanceConnectEndpoint-property
+            on_delete=cr.AwsSdkCall(
                 service="EC2",
                 action="deleteInstanceConnectEndpoint",
                 parameters={
