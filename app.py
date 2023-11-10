@@ -68,46 +68,54 @@ class EICEStack(Stack):
             security_group=sg_ec2,
         )
         
-        # Create a Custom Resource for EICE Instance Connect Endpoint
-        eice = cr.AwsCustomResource(
+        # Create EICE Instance Connect Endpoint with CDK L1 construct
+        eice = ec2.CfnInstanceConnectEndpoint(
             self, "EC2InstanceConnectionEndpoint",
-            install_latest_aws_sdk=True,
-            # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateInstanceConnectEndpoint.html
-            # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createInstanceConnectEndpoint-property
-            on_update=cr.AwsSdkCall(
-                service="EC2",
-                action="createInstanceConnectEndpoint",
-                parameters={
-                    "DryRun": False,
-                    "SubnetId": vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED).subnet_ids[0],
-                    "SecurityGroupIds": [sg_eice.security_group_id],
-                    "PreserveClientIp": True,
-                },
-                physical_resource_id=cr.PhysicalResourceId.from_response("InstanceConnectEndpoint.InstanceConnectEndpointId")
-            ),
-            # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteInstanceConnectEndpoint.html
-            # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteInstanceConnectEndpoint-property
-            on_delete=cr.AwsSdkCall(
-                service="EC2",
-                action="deleteInstanceConnectEndpoint",
-                parameters={
-                    "DryRun": False,
-                    "InstanceConnectEndpointId": cr.PhysicalResourceIdReference(),
-                }
-            ),
-            policy=cr.AwsCustomResourcePolicy.from_statements(statements=[
-                    iam.PolicyStatement(
-                        actions=[
-                            "ec2:CreateInstanceConnectEndpoint",
-                            "ec2:CreateNetworkInterface",
-                            "ec2:CreateTags",
-                            "ec2:DeleteInstanceConnectEndpoint",
-                        ],
-                        resources=["*"],
-                    ),  
-                ],
-            )
+            subnet_id=vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED).subnet_ids[0],
+            security_group_ids=[sg_eice.security_group_id],
+            preserve_client_ip=True,
         )
+
+        # (Deprecated) Create a Custom Resource for EICE Instance Connect Endpoint
+        # eice = cr.AwsCustomResource(
+        #     self, "EC2InstanceConnectionEndpoint",
+        #     install_latest_aws_sdk=True,
+        #     # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateInstanceConnectEndpoint.html
+        #     # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createInstanceConnectEndpoint-property
+        #     on_update=cr.AwsSdkCall(
+        #         service="EC2",
+        #         action="createInstanceConnectEndpoint",
+        #         parameters={
+        #             "DryRun": False,
+        #             "SubnetId": vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED).subnet_ids[0],
+        #             "SecurityGroupIds": [sg_eice.security_group_id],
+        #             "PreserveClientIp": True,
+        #         },
+        #         physical_resource_id=cr.PhysicalResourceId.from_response("InstanceConnectEndpoint.InstanceConnectEndpointId")
+        #     ),
+        #     # Ref 1: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteInstanceConnectEndpoint.html
+        #     # Ref 2: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteInstanceConnectEndpoint-property
+        #     on_delete=cr.AwsSdkCall(
+        #         service="EC2",
+        #         action="deleteInstanceConnectEndpoint",
+        #         parameters={
+        #             "DryRun": False,
+        #             "InstanceConnectEndpointId": cr.PhysicalResourceIdReference(),
+        #         }
+        #     ),
+        #     policy=cr.AwsCustomResourcePolicy.from_statements(statements=[
+        #             iam.PolicyStatement(
+        #                 actions=[
+        #                     "ec2:CreateInstanceConnectEndpoint",
+        #                     "ec2:CreateNetworkInterface",
+        #                     "ec2:CreateTags",
+        #                     "ec2:DeleteInstanceConnectEndpoint",
+        #                 ],
+        #                 resources=["*"],
+        #             ),  
+        #         ],
+        #     )
+        # )
 
 eice_stack = EICEStack(app, "EICEStack")
 
