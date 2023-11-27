@@ -27,7 +27,7 @@ class EICEStack(Stack):
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="protected",
-                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,
+                    subnet_type=ec2.SubnetType.PUBLIC,
                     cidr_mask=24,
                 ),
             ],
@@ -62,16 +62,19 @@ class EICEStack(Stack):
         bastion = ec2.Instance(
             self, "EICEBastion",
             vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,),
-            instance_type=ec2.InstanceType("t3.micro"),
-            machine_image=ec2.MachineImage.latest_amazon_linux2023(cpu_type=ec2.AmazonLinuxCpuType.X86_64),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC,),
+            instance_type=ec2.InstanceType("g4dn.xlarge"),
+            machine_image=ec2.MachineImage.generic_linux({'ap-northeast-1': 'ami-0dadff2c5c2f5f1b7'}),
+            block_devices=[
+                ec2.BlockDevice(device_name="/dev/xvda", volume=ec2.BlockDeviceVolume.ebs(30))
+                ],
             security_group=sg_ec2,
         )
         
         # Create EICE Instance Connect Endpoint with CDK L1 construct
         eice = ec2.CfnInstanceConnectEndpoint(
             self, "EC2InstanceConnectionEndpoint",
-            subnet_id=vpc.select_subnets(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED).subnet_ids[0],
+            subnet_id=vpc.select_subnets(subnet_type=ec2.SubnetType.PUBLIC).subnet_ids[0],
             security_group_ids=[sg_eice.security_group_id],
             preserve_client_ip=True,
         )
@@ -117,6 +120,6 @@ class EICEStack(Stack):
         #     )
         # )
 
-eice_stack = EICEStack(app, "EICEStack")
+eice_stack = EICEStack(app, "EICEGPUStack")
 
 app.synth()
