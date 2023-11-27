@@ -64,7 +64,7 @@ class EICEStack(Stack):
             vpc=vpc,
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC,),
             instance_type=ec2.InstanceType("g4dn.xlarge"),
-            machine_image=ec2.MachineImage.generic_linux({'ap-northeast-1': 'ami-0dadff2c5c2f5f1b7'}),
+            machine_image=ec2.MachineImage.generic_linux({'ap-northeast-1': 'ami-0dadff2c5c2f5f1b7'}),  # Ref: https://cloud-images.ubuntu.com/locator/ec2/
             block_devices=[
                 ec2.BlockDevice(device_name="/dev/xvda", volume=ec2.BlockDeviceVolume.ebs(30))
                 ],
