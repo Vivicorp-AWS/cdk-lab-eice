@@ -1,6 +1,8 @@
 
 # CDK Lab - EC2 Instance Connect Endpoint (EICE)
 
+AWS launched [Amazon EC2 Instance Connect (EIC) Endpoint](https://aws.amazon.com/about-aws/whats-new/2023/06/amazon-ec2-instance-connect-ssh-rdp-public-ip-address/) (EICE) on 2023-06-14, allows client to connect to EC2 instance even being in a Private Subnet without an Internet Gateway (IGW). Read the [blog post](https://aws.amazon.com/blogs/compute/secure-connectivity-from-public-to-private-introducing-ec2-instance-connect-endpoint-june-13-2023/) for more details.
+
 This project implement EC2 Instance Connect Endpoint deployment with CDK, to provide a safer way to access workloads in private subnets via SSH (port 22) or RDP (port 3389) without IGWs, public IPs, and anything that can be seciruty vulnerability.
 
 Also credit to the post "[EC2 Instance Connect EndpointをCDKで作成してみた](https://dev.classmethod.jp/articles/create-ec2-instance-connect-endpoint-using-cdk-custom-resource/)" written by [アッキー (Akky)](https://dev.classmethod.jp/author/akky/) from [Classmethod (クラスメソッド株式会社)](https://classmethod.jp), most of my work was just rewrite the code with Python.
