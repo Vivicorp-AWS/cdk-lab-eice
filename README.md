@@ -18,6 +18,15 @@ cdk deploy \
   --outputs-file ./cdk.out/outputs.json
 ```
 
+It will create:
+
+* 1x `t3.micro` EC2 Instance with the latest Amazon Linux 2023 installed
+* 1x EC2 Instance Connect Endpoint (EICE)
+* 1x VPC with 2 private isolated subnets
+* 2x Security Groups, one attached on EC2 and another attached on EICE
+* 1x Egress rule for EICE's Security Group
+* 1x Ingress rule for EC2's Security Group
+
 Connect the EC2 Instance with EC2 Instance Connect Endpoint (Must install [jq](https://jqlang.github.io/jq/) first):
 
 ```bash
