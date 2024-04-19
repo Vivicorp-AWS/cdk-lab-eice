@@ -117,6 +117,9 @@ class EICEStack(Stack):
         #     )
         # )
 
+        # CfnOutput EC2 Instance ID
+        CfnOutput(self, "EC2InstanceID", value=bastion.instance_id)
+
 eice_stack = EICEStack(app, "EICEStack")
 
 app.synth()
