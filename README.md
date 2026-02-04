@@ -38,7 +38,7 @@ aws ec2-instance-connect ssh \
 To remove all components:
 
 ```bash
-cdk destroy -all
+cdk destroy --all
 ```
 
 ## Caveats
