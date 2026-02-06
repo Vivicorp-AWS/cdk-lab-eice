@@ -7,6 +7,8 @@ This project implement EC2 Instance Connect Endpoint deployment with CDK, to pro
 
 Also credit to the post "[EC2 Instance Connect EndpointをCDKで作成してみた](https://dev.classmethod.jp/articles/create-ec2-instance-connect-endpoint-using-cdk-custom-resource/)" written by [アッキー (Akky)](https://dev.classmethod.jp/author/akky/) from [Classmethod (クラスメソッド株式会社)](https://classmethod.jp), most of my work was just rewrite the code with Python.
 
+![](./cdk-lab-eice.jpg)
+
 ## Usage
 
 To deploy all components:
